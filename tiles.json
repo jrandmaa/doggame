@@ -1,0 +1,39 @@
+[
+
+  {
+    "name": "cactus1.png",
+    "frame": {"x":478,"y":0,"w":189,"h":329}
+  },
+  {
+    "name": "cactus2.png",
+    "frame": {"x":94,"y":0,"w":66,"h":293}
+  },
+  {
+    "name": "cactus3.png",
+    "frame": {"x":331,"y":0,"w":147,"h":163}
+  
+  },
+  {
+    "name": "flower-top.png",
+    "frame": {"x":55,"y":0,"w":39,"h":46}
+  },
+  {
+    "name": "flower.png",
+    "frame": {"x":18,"y":0,"w":37,"h":77}
+  },
+  {
+    "name": "ground.png",
+    "frame": {"x":0,"y":329,"w":568,"h":201}
+  },
+  {
+    "name": "rock1.png",
+    "frame": {"x":236,"y":0,"w":95,"h":47}
+  },
+  {
+    "name": "rock2.png",
+    "frame": {"x":160,"y":0,"w":76,"h":54}
+  },
+  {
+    "name": "rock3.png",
+    "frame": {"x":0,"y":0,"w":18,"h":11}
+  }]
