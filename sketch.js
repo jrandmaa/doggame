@@ -9,8 +9,10 @@ let props = [];
 let bgprops = [];
 let sprites = [];
 let physProps = [];
+let npcSprites = [];
 
-
+let beesReleased = false;
+let releaseButton;
 
 
 let currX = 0;
@@ -49,6 +51,8 @@ function preload() {
   physProps[0] = loadImage('img/rock3.png');
   physProps[1] = loadImage('img/flower-top.png');
   physProps[2] = loadImage('img/cyclops.png');
+  npcSprites[0] = loadImage('img/bee2.png');
+  npcSprites[1] = loadImage('img/bee3.png');
   this.gameState = new GameState();
   
   //camera = new Camera(80,80,1);
@@ -58,7 +62,18 @@ function preload() {
   });
 }
 
+function release(){
+  beesReleased = true;
+  text('word', 10, 60);
+  releaseButton.remove();
+
+}
+
 function setup() {
+  releaseButton = createButton('click me to release the bees :)');
+  releaseButton.position(19, 19);
+  releaseButton.mousePressed(release);
+
   //setCamera(this.camera);
   bg = loadImage('img/sunset.png');
   createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -126,7 +141,8 @@ class GameState{
       new Cactus(1,300,25),
       new Cactus(0,-900,-25),
       new Cactus(1,-2000,25),
-      new Cactus(0,950,-25)
+      new Cactus(0,950,-25),
+      new Swarm(-8000,200,12)
     ];
     this.physicsObjs = [
       new PhysObject(this,physProps[2],20330,330,30),//gs,image,inx,iny,weight)
@@ -505,7 +521,7 @@ class Player{
       }
     }
     if(keyIsDown(DOWN_ARROW)){
-      console.log(this.inputs);
+      console.log(this.inputs);//debug :O)
     }
 
     this.sprite.display();
@@ -514,9 +530,78 @@ class Player{
 // when moving, consider speed then decay it a little (by dampening value)
 }
 draw(){
-  //this.sprite.position.x = this.posx;
-
   //this.gameState.physicsObjs.forEach(o => this.sprite.displace(o.sprite));
 }
+}
+
+class Swarm{
+
+  constructor(posx,posy,count){
+    this.posx = posx;
+    this.posy = posy;
+    this.count = count;
+    this.swarmArray = new Array(count);
+    for(var i = 0; i < count; i++){
+      this.swarmArray[i] = new Bee(this);
+    }
+  }
+
+  display(){
+    if(beesReleased){
+    this.swarmArray.forEach(o => o.display());
+
+    if(this.posx > player.posx + 50 && this.posx - player.posx < 200){
+      this.posx -= 50;
+    } else if (this.posx - player.posx > 100){
+      this.posx -= 80;
+    }
+    else if(player.posx - this.posx > 200){
+      this.posx += 80;//bee noise sound depend on proximity
+    } else {
+
+      this.posx += 50;
+    }
+  }
+    //ellipse(this.posx, this.posy, 10, 10);
+    //console.log(this.swarmArray);
+  }
+  draw(){
+
+  }
+
+
+
+}
+
+class Bee{
+  constructor(swarm){
+    this.swarm = swarm;
+    var offset = 30 * ((Math.random()*2)-1);
+    this.sprite = createSprite(300+offset,300+offset,20,20);//swarm.posx,swarm.posy);
+    this.sprite.addImage(npcSprites[0]);
+  }
+  display(){
+
+    /*
+
+    add check: if too far from swarm origin: reassign position 
+
+    */
+
+    //console.log("HEY!!!!!");
+    var attractionStremgth = (Math.random()*8) + 10
+    this.sprite.attractionPoint(attractionStremgth,this.swarm.posx,this.swarm.posy);
+    this.sprite.display();
+
+    if(this.sprite.position.x > this.swarm.posx + 100){
+      this.sprite.position.x = this.swarm.posx;
+    }
+    if(this.sprite.position.y > this.swarm.posy + 100){
+      this.sprite.position.y = this.swarm.posy;
+    }
+    if(this.sprite.position.y < this.swarm.posy -100){
+      this.sprite.position.y = this.swarm.posy;
+    }
+  }
 }
 
