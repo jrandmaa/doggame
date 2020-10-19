@@ -5,6 +5,8 @@ const TOTAL_ROWS = 6;
 const CANVAS_WIDTH = 800;//TILE_SIZE * TOTAL_COLUMNS;
 const CANVAS_HEIGHT = 600;//TILE_SIZE * TOTAL_ROWS;
 
+let canvas;
+
 let props = [];
 let bgprops = [];
 let sprites = [];
@@ -13,14 +15,18 @@ let npcSprites = [];
 
 let UISprites = [];
 
-let beesReleased = false;
+//let beesReleased = false;
+let beeState = 0; //0:nothing,1:ready,2:theyre out. oh no
 let releaseButton;
+var readyImgSizeIndex =40;
 //et arrowSprite;
 
 
 let currX = 0;
 var player;
 var gameState;
+var paused = false;
+
 
 
 
@@ -62,6 +68,8 @@ function preload() {
   UISprites[1] = loadImage('img/UI/arrowanimr.gif');
   UISprites[2] = loadImage('img/UI/restartinfo.png');
   UISprites[3] = loadImage('img/UI/pauseinfo.png');
+  UISprites[4] = loadImage('img/UI/READY2.png');
+  UISprites[5] = loadImage('img/UI/GO.png');
   this.gameState = new GameState();
   
   
@@ -75,8 +83,9 @@ function preload() {
 }
 
 function release(){
-  beesReleased = true;
-  text('word', 10, 60);
+
+  beeState = 1;
+  //beesReleased = true;
   releaseButton.remove();
 
 }
@@ -91,38 +100,21 @@ function setup() {
 
   //setCamera(this.camera);
   bg = loadImage('img/sunset.png');
-  createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
-  //background(0);
-  //image(prop1,30,30,189,329);
-  /*
-  // Draw the ground tiles
-  for (var x = 0; x < TOTAL_COLUMNS; x+=7) {
-    drawTile('ground.png', x, TOTAL_ROWS - 1);
-    // rows[TOTAL_ROWS - 1][x] = 'snow.png';
-    play();
-  }
-  */
-  //image(props[2],0,0);
-  //console.log(rows);
+  canvas = createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
+  canvas.drawingContext.imageSmoothingEnabled = false;//this disables anti-aliasing
 }
 
 function draw() {
-  //drawSprites();
-  //try either global player or gs player
-  camera.position.x = player.posx;
-  
   background(bg);
   this.gameState.display();
-
   //******
   //ellipse(camera.position.x, camera.position.y, 10, 10);
   //******
+  //if(!paused){
 
-  camera.position.x = this.player.posx;
-  camera.position.y = this.player.posy + 50;
-  //drawSprites();
-  
-  //console.log("did i get there?");
+    camera.position.x = this.player.posx;
+    camera.position.y = this.player.posy + 50;
+  //}
   this.gameState.drawSpriteIndividual();
   
 }
@@ -209,8 +201,11 @@ class GameState{
   display(){//basically update
 
     
-    this.bg3.forEach(o => o.xpos += (this.inputs[1] * this.bg3speed));
-    this.bg2.forEach(o => o.xpos += (this.inputs[1] * this.bg2speed));
+    if(!paused){
+      this.bg3.forEach(o => o.xpos += (this.inputs[1] * this.bg3speed));
+      this.bg2.forEach(o => o.xpos += (this.inputs[1] * this.bg2speed));
+    }
+    
     //this.cactus.display();
     this.bg3.forEach(o => o.display());
     this.bg2.forEach(o => o.display());
@@ -223,13 +218,34 @@ class GameState{
     //.display();
 
     this.physicsObjs.forEach(o => o.display());
+
+    //UI------
     this.renderArrow();
+
+    image(UISprites[3],camera.position.x + UISprites[3].width,camera.position.y - CANVAS_HEIGHT/2 +10);
+    //vvv Hacky solution to animations
+    if(beeState==1 && readyImgSizeIndex > 0){
+      let newWidth = UISprites[4].width + readyImgSizeIndex + 40;
+      let newHeight = UISprites[4].height + (readyImgSizeIndex/2) + 40;
+      image(UISprites[4],camera.position.x - (newWidth/2),camera.position.y -100,UISprites[4].width + readyImgSizeIndex + 40,UISprites[4].height + (readyImgSizeIndex/2) + 40);
+
+      //image(UISprites[4],camera.position.x,camera.position.y,UISprites[4].width + readyImgSizeIndex,UISprites[4].height + readyImgSizeIndex);
+      readyImgSizeIndex -= 1;
+      
+    } else if (beeState==1 && readyImgSizeIndex > (-30)){
+      image(UISprites[5],camera.position.x-60,camera.position.y-100,UISprites[5].width + 40, UISprites[5].height + 40);
+      readyImgSizeIndex -= 0.7;
+    } else if (beeState==1 && readyImgSizeIndex <= (-30)){
+      
+      beeState = 2;
+    }
+    //--------
   }
 
   renderArrow(){
     //if gif dont work just loop images
     //ALSO>>> MAKE SURE NOT PAUSED
-    if(beesReleased){
+    if(beeState==2){
       
       //console.log("dummy log");
       
@@ -239,11 +255,8 @@ class GameState{
       
       if(this.npcs[0].posx < player.posx -CANVAS_WIDTH/2){
         //image(UISprites[0],camera.position.x-CANVAS_WIDTH/2,-30);
-
         let fixedDistance = clamp(0,maxShrinkDistance)(camera.position.x -  this.npcs[0].posx);
         let temp = fixedDistance/minSize + 10;
-
-        console.log(fixedDistance,1200/temp,temp);
         image(UISprites[0],camera.position.x - CANVAS_WIDTH/2 + (600/temp),30,(1200/temp),(1200/temp)-10);
         //console.log(fixedDistance,camera.position.x - this.npcs[0].posx);
       }
@@ -252,9 +265,7 @@ class GameState{
         let temp = fixedDistance/minSize + 10;
 
         console.log(fixedDistance,1200/temp,temp);*/
-        
-        
-        
+
         let fixedDistance = clamp(0,maxShrinkDistance)(this.npcs[0].posx - camera.position.x);
         //rotate(200)
         
@@ -297,6 +308,7 @@ class InfiniteRepeat{
   }
   display(){
 
+    
    if(camera.position.x - this.xpos >1300){
       this.xpos += 1310;
     } else if(camera.position.x - this.xpos < 0){
@@ -318,10 +330,7 @@ class InfiniteRepeat{
   
 
   draw(){
-    //this.sprite.position.x = this.xpos + this.image.width/2;//this.xpos;// + this.image.width/2;
-    //this.sprite.position.y = this.ypos + this.image.height/2;// + this.image.height/2;
-    //this.sprite.debug = mouseIsPressed;
-    //console.log("WHY", this.xpos, this.ypos, this.sprite.position.x, camera.position.x);
+
   }
 }
 class Ground{//JUST PASTED< EDIT ME
@@ -383,7 +392,6 @@ width = 1332;
     this.sprite.position.x = this.xpos + this.image.width/2;//this.xpos;// + this.image.width/2;
     this.sprite.position.y = this.ypos + this.image.height/2;// + this.image.height/2;
     //this.sprite.debug = mouseIsPressed;
-    //console.log("WHY", this.xpos, this.ypos, this.sprite.position.x, camera.position.x);
   }
 }
 class Cactus{
@@ -454,6 +462,7 @@ class PhysObject{
     //this.sprite.bounce(player.sprite);//this.gameState.bg1[0].sprite);
     //this.sprite.debug = true;
 
+    if(!paused){
     let gravity = createVector(0, 0.4 * this.mass);
     this.acceleration.add(p5.Vector.div(gravity, this.mass));
 
@@ -472,7 +481,6 @@ class PhysObject{
       if(this.position.y > player.sprite.position.y){
         //inside of player 😳😳
         //if(player.inputs[1] > )
-        //console.log(player.inputs[1]);
         if(player.inputs[1]>20 || player.inputs[1]<-20){
           this.velocity.add(createVector(player.inputs[1]*0.3,-5));
         }
@@ -485,28 +493,21 @@ class PhysObject{
         }
         
       }
-      
-
-      
     }
-    //console.log(playerLeft, this.position.x, playerRight,(this.position.x > playerLeft)&&(this.position.x < playerRight));
-    //this.sprite.position = this.pos;
-
+      
     this.velocity.add(this.acceleration);
     this.acceleration.mult(0);
     this.position.add(this.velocity);
 
-    //console.log(this.position);
     this.sprite.position = this.position;
+    this.velocity.x *= (1-this.drag);
+      
+    }
+    //this.sprite.position = this.pos;
 
-    this.velocity.x *= (1-this.drag)
-    //console.log("one");
-    //this.sprite.position.x = this.posx;
-    //this.sprite.position.y = this.velocity[1];
-    //this.velocity *= (1);
+    
 
     this.sprite.display();
-    //console.log(this.position.y);
 
     //image(this.sprite,this.posx+this.velocity[0],this.posy+this.velocity[1]);
     //this.velocity.forEach(o => o=0);
@@ -525,7 +526,7 @@ class PhysObject{
     //hit floor : reduce speed by alot (cap at 0) and inverse?
 
 
-    console.log("hey!!!!!");
+    //console.log("hey!!!!!");
     
 
     //this.sprite.collide(this.gameState.bg1[0].sprite,this.touchFloor);
@@ -567,50 +568,56 @@ class Player{
     ^^^ FOR ANIMATIONS!!!!!!
     */
 
+    if(!paused){
 
-    this.gameState.inputs = this.inputs;
-    this.posx += this.inputs[1];
+      this.gameState.inputs = this.inputs;
+      this.posx += this.inputs[1];
 
 
-    //ENABLE ME*******************************
-    
-    this.sprite.position.x = this.posx;
-    this.sprite.y = this.posy;
-    //image(props[1],this.posx,this.posy);
-    //ENABLE ME*******************************
-
-    
-   this.inputs[1] -= this.inputs[1] * this.dampening;
-
-    if (keyIsDown(UP_ARROW)) {//AND touching the floor
-      this.inputs[0] += 0.1;
-      //JUMP() CALL
-    }/* else if (keyIsDown(DOWN_ARROW)) {
+      //ENABLE ME*******************************
+      this.sprite.position.x = this.posx;
+      this.sprite.y = this.posy;
+      //image(props[1],this.posx,this.posy);
+      //ENABLE ME*******************************
 
       
-      //CROUCH() CALL
-    }*/ else if (keyIsDown(LEFT_ARROW)) {
-      if(this.inputs[1]<-40){
-        this.inputs[1] -= 2.5;
-      } else {
-        this.inputs[1] -= 1.5;
+    this.inputs[1] -= this.inputs[1] * this.dampening;
+
+      if (keyIsDown(UP_ARROW)) {//AND touching the floor
+        this.inputs[0] += 0.1;
+        //JUMP() CALL
+      }/* else if (keyIsDown(DOWN_ARROW)) {
+
+        
+        //CROUCH() CALL
+      }*/ else if (keyIsDown(LEFT_ARROW)) {
+        if(this.inputs[1]<-40){
+          this.inputs[1] -= 2.5;
+        } else {
+          this.inputs[1] -= 1.5;
+        }
+        
+
+        
+      } else if (keyIsDown(RIGHT_ARROW)) {
+        if(this.inputs[1]>40){
+          this.inputs[1] += 2.5;
+        } else {
+          this.inputs[1] += 1.5;
+        }
       }
-      
-
-      
-    } else if (keyIsDown(RIGHT_ARROW)) {
-      if(this.inputs[1]>40){
-        this.inputs[1] += 2.5;
-      } else {
-        this.inputs[1] += 1.5;
+      if(keyIsDown(DOWN_ARROW)){
+        console.log(this.inputs);//debug :O)
       }
+
     }
-    if(keyIsDown(DOWN_ARROW)){
-      console.log(this.inputs);//debug :O)
-    }
+    
 
     this.sprite.display();
-    this.inputs[1] = clamp(-this.capSpeed,this.capSpeed)(this.inputs[1]);
+    if(!paused){
+      this.inputs[1] = clamp(-this.capSpeed,this.capSpeed)(this.inputs[1]);
+    }
+    
 // speed arraylist. each if statement adds 1 or -1 to the inputs, but each one caps at 15 or sumthin
 // when moving, consider speed then decay it a little (by dampening value)
 }
@@ -632,7 +639,7 @@ class Swarm{
   }
 
   display(){
-    if(beesReleased){
+    if(beeState==2 && !paused){
     this.swarmArray.forEach(o => o.display());
 
     if(this.posx > player.posx + 50 && this.posx - player.posx < 200){
@@ -646,8 +653,10 @@ class Swarm{
 
       this.posx += 50;
     }
+  } else {
+    this.swarmArray.forEach(o => o.display());
   }
-    //ellipse(this.posx, this.posy, 10, 10);
+    ellipse(this.posx, this.posy, 10, 10);
     //console.log(this.swarmArray);
   }
   draw(){
@@ -672,11 +681,10 @@ class Bee{
     add check: if too far from swarm origin: reassign position 
 
     */
-
-    //console.log("HEY!!!!!");
-    var attractionStremgth = (Math.random()*8) + 10
+   if(!paused){
+     var attractionStremgth = (Math.random()*8) + 10
     this.sprite.attractionPoint(attractionStremgth,this.swarm.posx,this.swarm.posy);
-    this.sprite.display();
+    
 
     if(this.sprite.position.x > this.swarm.posx + 100){
       this.sprite.position.x = this.swarm.posx;
@@ -687,7 +695,32 @@ class Bee{
     if(this.sprite.position.y < this.swarm.posy -100){
       this.sprite.position.y = this.swarm.posy;
     }
+    this.posx = this.sprite.position.x;
+    this.posy = this.sprite.position.y;
+   }  else {
+     this.sprite.position.x = this.posx;
+     this.sprite.position.y = this.posy
+   }  
+    this.sprite.display();
   }
 }
 
+/*
+
+DUST HANDLER HERE
+
+to play anim just iterate thru all frames one loop (for x < size())
+if player left while right velocity is high (& vice versa)
+track player x + width/2
+
+also disable anti-aliasing :O)
+
+*/
+
+function keyPressed(){
+  if(keyCode == 80){
+    
+    paused = !paused;
+  }
+}
 
