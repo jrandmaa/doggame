@@ -58,6 +58,7 @@ function preload() {
   npcSprites[0] = loadImage('img/bee2.png');
   npcSprites[1] = loadImage('img/bee3.png');
   UISprites[0] = loadImage('img/UI/arrowanim.gif');
+  
   UISprites[1] = loadImage('img/UI/arrowanimr.gif');
   UISprites[2] = loadImage('img/UI/restartinfo.png');
   UISprites[3] = loadImage('img/UI/pauseinfo.png');
@@ -233,22 +234,34 @@ class GameState{
       //console.log("dummy log");
       
       
-      let maxShrinkDistance = 300;
+      let maxShrinkDistance = 2000;
+      let minSize = 50;
+      
       if(this.npcs[0].posx < player.posx -CANVAS_WIDTH/2){
-        image(UISprites[0],camera.position.x-CANVAS_WIDTH/2,-30);
+        //image(UISprites[0],camera.position.x-CANVAS_WIDTH/2,-30);
 
+        let fixedDistance = clamp(0,maxShrinkDistance)(camera.position.x -  this.npcs[0].posx);
+        let temp = fixedDistance/minSize + 10;
+
+        console.log(fixedDistance,1200/temp,temp);
+        image(UISprites[0],camera.position.x - CANVAS_WIDTH/2 + (600/temp),30,(1200/temp),(1200/temp)-10);
+        //console.log(fixedDistance,camera.position.x - this.npcs[0].posx);
       }
       if(this.npcs[0].posx > player.posx + CANVAS_WIDTH/2){
+        /*let fixedDistance = clamp(0,maxShrinkDistance)(camera.position.x -  this.npcs[0].posx);
+        let temp = fixedDistance/minSize + 10;
 
-        //3030 and 6060
-        //60 - ()
-
-        //from (clamp distance at -500)
+        console.log(fixedDistance,1200/temp,temp);*/
         
-        let fixedDistance = clamp(maxShrinkDistance,0)(this.npcs[0].posx - camera.position.x);
-        //rotate(200);
-        console.log(fixedDistance);
-        image(UISprites[1],camera.position.x + CANVAS_WIDTH/2 - UISprites[1].width,30);
+        
+        
+        let fixedDistance = clamp(0,maxShrinkDistance)(this.npcs[0].posx - camera.position.x);
+        //rotate(200)
+        
+        let temp = fixedDistance/minSize + 10;
+        //image(UISprites[0],camera.position.x - CANVAS_WIDTH/2 + (600/temp),30,(1200/temp),(1200/temp)-10);
+        //onsole.log(fixedDistance,1200/temp);
+        image(UISprites[1],camera.position.x + CANVAS_WIDTH/2 - (1200/temp),30,(1200/temp),(1200/temp)-10);
       }
       
     }
