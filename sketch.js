@@ -11,13 +11,17 @@ let sprites = [];
 let physProps = [];
 let npcSprites = [];
 
+let UISprites = [];
+
 let beesReleased = false;
 let releaseButton;
+//et arrowSprite;
 
 
 let currX = 0;
 var player;
 var gameState;
+
 
 
 //Math stuff
@@ -53,8 +57,15 @@ function preload() {
   physProps[2] = loadImage('img/cyclops.png');
   npcSprites[0] = loadImage('img/bee2.png');
   npcSprites[1] = loadImage('img/bee3.png');
+  UISprites[0] = loadImage('img/UI/arrowanim.gif');
+  UISprites[1] = loadImage('img/UI/arrowanimr.gif');
+  UISprites[2] = loadImage('img/UI/restartinfo.png');
+  UISprites[3] = loadImage('img/UI/pauseinfo.png');
   this.gameState = new GameState();
   
+  
+    
+    //this.sprite.addImage(image);
   //camera = new Camera(80,80,1);
   loadJSON('tiles.json', function(tile_frames) {
     // Load tiles sprite sheet from frames array once frames array is ready
@@ -70,6 +81,9 @@ function release(){
 }
 
 function setup() {
+  arrowSprite = createSprite(200,200);//image.width/2,image.height/2);
+
+  
   releaseButton = createButton('click me to release the bees :)');
   releaseButton.position(19, 19);
   releaseButton.mousePressed(release);
@@ -141,7 +155,10 @@ class GameState{
       new Cactus(1,300,25),
       new Cactus(0,-900,-25),
       new Cactus(1,-2000,25),
-      new Cactus(0,950,-25),
+      new Cactus(0,950,-25)
+      
+    ];
+    this.npcs = [
       new Swarm(-8000,200,12)
     ];
     this.physicsObjs = [
@@ -160,15 +177,28 @@ class GameState{
       new PhysObject(this,physProps[1],11600,330,3),
       new PhysObject(this,physProps[1],11900,330,3),
       new PhysObject(this,physProps[1],12300,330,3)
-    ]
+    ];
+   //arrowSprite = createSprite(200,200);
+    //arrowSprite.addImage(UISprites[0]);
+    //^^ add this to UISprites array
+
     /*for(var i = 4000; i <= 5000; i+=100){
       this.physicsObjs.add(new PhysObject(this,physProps[0],i,330,4));
     }*/
+    this.arrowImage = loadImage('img/UI/arrowanim.gif');
     console.log("Made Gamestate");
     //!!!Hey bitch!!!
     //populate lists of layer1 props, layer2 props layer3 props
     //with instances ==> array [ new Cactus(idont,care), new Cactus....]
     //only referred to by array memory location
+    /*
+    this.sprite = createSprite(200,200);
+    this.image = loadImage('img/dog5.png');
+    this.imageL = loadImage('img/rock2.png');
+    this.sprite.addImage(loadImage('img/dog5.png'));
+    */
+   
+    
   }
 
   getPlayerx(){
@@ -176,6 +206,7 @@ class GameState{
   }
 
   display(){//basically update
+
     
     this.bg3.forEach(o => o.xpos += (this.inputs[1] * this.bg3speed));
     this.bg2.forEach(o => o.xpos += (this.inputs[1] * this.bg2speed));
@@ -184,19 +215,58 @@ class GameState{
     this.bg2.forEach(o => o.display());
    
     this.bg1.forEach(o => o.display());
+    this.npcs.forEach(o => o.display());
     
     
     self.player.display();
+    //.display();
 
     this.physicsObjs.forEach(o => o.display());
+    this.renderArrow();
   }
+
+  renderArrow(){
+    //if gif dont work just loop images
+    //ALSO>>> MAKE SURE NOT PAUSED
+    if(beesReleased){
+      
+      //console.log("dummy log");
+      
+      
+      let maxShrinkDistance = 300;
+      if(this.npcs[0].posx < player.posx -CANVAS_WIDTH/2){
+        image(UISprites[0],camera.position.x-CANVAS_WIDTH/2,-30);
+
+      }
+      if(this.npcs[0].posx > player.posx + CANVAS_WIDTH/2){
+
+        //3030 and 6060
+        //60 - ()
+
+        //from (clamp distance at -500)
+        
+        let fixedDistance = clamp(maxShrinkDistance,0)(this.npcs[0].posx - camera.position.x);
+        //rotate(200);
+        console.log(fixedDistance);
+        image(UISprites[1],camera.position.x + CANVAS_WIDTH/2 - UISprites[1].width,30);
+      }
+      
+    }
+  }
+
   drawSpriteIndividual(){
     this.bg1.forEach(o => o.draw());
     //self.bg2.forEach(o => o.draw());
 
 
   }
-  
+
+  restart(){
+
+  }
+  pause(){
+    
+  }
   
 
 }
@@ -214,7 +284,7 @@ class InfiniteRepeat{
   }
   display(){
 
-    if(camera.position.x - this.xpos >1300){
+   if(camera.position.x - this.xpos >1300){
       this.xpos += 1310;
     } else if(camera.position.x - this.xpos < 0){
       this.xpos -= 1310;
@@ -231,6 +301,8 @@ class InfiniteRepeat{
     //image(this.sprite, this.xpos-(2*this.width), this.ypos);
     //if camera position = position + half of image, display image in front
   }
+
+  
 
   draw(){
     //this.sprite.position.x = this.xpos + this.image.width/2;//this.xpos;// + this.image.width/2;
@@ -604,4 +676,5 @@ class Bee{
     }
   }
 }
+
 
