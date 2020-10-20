@@ -595,12 +595,13 @@ class Player{
 /*
 PSEUDOCODE FOR G:
 
-class asdf
-inputs = [0.0,0.0]
+class asdf{
+  inputs = [0.0,0.0]
 
 
-display(){
+  display(){
 
+  }
 }
 
 */
