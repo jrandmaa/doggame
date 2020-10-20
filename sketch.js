@@ -87,6 +87,10 @@ function release(){
   beeState = 1;
   //beesReleased = true;
   releaseButton.remove();
+}
+
+function restart(){
+  //setup();
 
 }
 
@@ -95,7 +99,7 @@ function setup() {
 
   
   releaseButton = createButton('click me to release the bees :)');
-  releaseButton.position(19, 19);
+  releaseButton.position(CANVAS_WIDTH/2 - 30, 25);
   releaseButton.mousePressed(release);
 
   //setCamera(this.camera);
@@ -132,6 +136,10 @@ class GameState{
 
   inputs = [0.0,0.0];
   constructor(){
+    this.reload();
+  }
+  reload(){
+    this.inputs = [0.0,0.0];
     //background(0)
     this.inputs = [0.0,0.0];
     self.player = new Player(this);
@@ -223,6 +231,7 @@ class GameState{
     this.renderArrow();
 
     image(UISprites[3],camera.position.x + UISprites[3].width,camera.position.y - CANVAS_HEIGHT/2 +10);
+    image(UISprites[2],camera.position.x -CANVAS_WIDTH/2 + 10,camera.position.y - CANVAS_HEIGHT/2 +10);
     //vvv Hacky solution to animations
     if(beeState==1 && readyImgSizeIndex > 0){
       let newWidth = UISprites[4].width + readyImgSizeIndex + 40;
@@ -230,6 +239,7 @@ class GameState{
       image(UISprites[4],camera.position.x - (newWidth/2),camera.position.y -100,UISprites[4].width + readyImgSizeIndex + 40,UISprites[4].height + (readyImgSizeIndex/2) + 40);
 
       //image(UISprites[4],camera.position.x,camera.position.y,UISprites[4].width + readyImgSizeIndex,UISprites[4].height + readyImgSizeIndex);
+      
       readyImgSizeIndex -= 1;
       
     } else if (beeState==1 && readyImgSizeIndex > (-30)){
@@ -285,9 +295,7 @@ class GameState{
 
   }
 
-  restart(){
-
-  }
+  
   pause(){
     
   }
@@ -656,8 +664,7 @@ class Swarm{
   } else {
     this.swarmArray.forEach(o => o.display());
   }
-    ellipse(this.posx, this.posy, 10, 10);
-    //console.log(this.swarmArray);
+    //ellipse(this.posx, this.posy, 10, 10);
   }
   draw(){
 
@@ -721,6 +728,9 @@ function keyPressed(){
   if(keyCode == 80){
     
     paused = !paused;
+  } else if(keyCode == 82){
+    gameState.reload();
   }
+
 }
 
