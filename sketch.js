@@ -39,12 +39,6 @@ rows.forEach((row, i) => {
   rows[i] = Array.from({ length: TOTAL_COLUMNS}, e => null);
 })
 
-
-console.log(rows);
-
-
-
-
 let tile_sprite_sheet;
 
 
@@ -59,6 +53,8 @@ function preload() {
   bgprops[2] = loadImage('img/bg2.png');
   sprites[0] = loadImage('img/dog5.png');
   sprites[1] = loadImage('img/dogrun.gif');
+  sprites[2] = loadImage('img/dashdustL.gif');
+  sprites[3] = loadImage('img/dashdustR.gif');
   physProps[0] = loadImage('img/rock3.png');
   physProps[1] = loadImage('img/flower-top.png');
   physProps[2] = loadImage('img/cyclops.png');
@@ -71,6 +67,7 @@ function preload() {
   UISprites[3] = loadImage('img/UI/pauseinfo.png');
   UISprites[4] = loadImage('img/UI/READY2.png');
   UISprites[5] = loadImage('img/UI/GO.png');
+  UISprites[6] = loadImage('img/UI/!!.png');
   this.gameState = new GameState();
   
   
@@ -118,7 +115,7 @@ function draw() {
   //if(!paused){
 
     camera.position.x = this.player.posx;
-    camera.position.y = this.player.posy + 50;
+    camera.position.y = 50;//this.player.posy + 50;
   //}
   this.gameState.drawSpriteIndividual();
   
@@ -263,8 +260,6 @@ class GameState{
     if(beeState==2){
       
       //console.log("dummy log");
-      
-      
       let maxShrinkDistance = 2000;
       let minSize = 50;
       
@@ -273,13 +268,13 @@ class GameState{
         let fixedDistance = clamp(0,maxShrinkDistance)(camera.position.x -  this.npcs[0].posx);
         let temp = fixedDistance/minSize + 10;
         image(UISprites[0],camera.position.x - CANVAS_WIDTH/2 + (600/temp),30,(1200/temp),(1200/temp)-10);
-        //console.log(fixedDistance,camera.position.x - this.npcs[0].posx);
+        image(UISprites[6],camera.position.x - CANVAS_WIDTH/2 + (1200/temp) +(600/temp),30,(1200/temp),(1200/temp)-10);
       }
       if(this.npcs[0].posx > player.posx + CANVAS_WIDTH/2){
         /*let fixedDistance = clamp(0,maxShrinkDistance)(camera.position.x -  this.npcs[0].posx);
         let temp = fixedDistance/minSize + 10;
 
-        console.log(fixedDistance,1200/temp,temp);*/
+        */
 
         let fixedDistance = clamp(0,maxShrinkDistance)(this.npcs[0].posx - camera.position.x);
         //rotate(200)
@@ -288,6 +283,7 @@ class GameState{
         //image(UISprites[0],camera.position.x - CANVAS_WIDTH/2 + (600/temp),30,(1200/temp),(1200/temp)-10);
         //onsole.log(fixedDistance,1200/temp);
         image(UISprites[1],camera.position.x + CANVAS_WIDTH/2 - (1200/temp),30,(1200/temp),(1200/temp)-10);
+        image(UISprites[6],camera.position.x + CANVAS_WIDTH/2 - (1200/temp) -(1200/temp),30,(1200/temp),(1200/temp)-10);
       }
       
     }
@@ -422,7 +418,6 @@ class Cactus{
     /*if(keyIsDown(LEFT_ARROW)){
       this.y += 5;
     }*/
-    //console.log("*******************************************************************************"); 
   }
 
   draw(){
@@ -532,22 +527,11 @@ class PhysObject{
 
   touchFloor(){
     //this.velocity[1]-=1;
-    //console.log("asd");
   }
 
   draw(){
     //hit floor : reduce speed by alot (cap at 0) and inverse?
 
-
-    //console.log("hey!!!!!");
-    
-
-    //this.sprite.collide(this.gameState.bg1[0].sprite,this.touchFloor);
-    //console.log(this.sprite.position.x);
-    //this.sprite.position.x = this.posx;
-    //this.sprite.position.y = this.velocity[1];
-    //this.sprite.draw();
-    //console.log("ea");
   }
   /*draw(){
     drawSprites();
@@ -566,6 +550,8 @@ class Player{
     this.imageL = loadImage('img/rock2.png');
     this.runImage = sprites[1];
     this.sprite.addImage(loadImage('img/dog5.png'));
+    this.dustSprite = createSprite(200,200);
+    //this.dustSprite.addImage(sprites[2]);
   }
   posx = 0;
   posy = 0;
@@ -601,12 +587,11 @@ class Player{
 
     //start 100 go down to 10
     this.runImage.delay(Math.abs((1/(this.inputs[1]/80)*100)/2) + 1);
-    //console.log((this.inputs[1]/80)*100);
 
     if(!paused){
-
       this.gameState.inputs = this.inputs;
       this.posx += this.inputs[1];
+      //this.posy = 50;
 
 
       //ENABLE ME*******************************
@@ -619,7 +604,8 @@ class Player{
     this.inputs[1] -= this.inputs[1] * this.dampening;
 
       if (keyIsDown(UP_ARROW)||keyIsDown(87)) {//AND touching the floor
-        this.inputs[0] += 0.1;
+        this.inputs[0] += 1;
+        this.posy += 10;
         //JUMP() CALL
         this.sprite.addImage(this.image);
       }/* else if (keyIsDown(DOWN_ARROW)) {
@@ -634,6 +620,11 @@ class Player{
         }
 
         this.sprite.addImage(this.runImage);
+        /*if(this.inputs[1]>30){
+          this.dustSprite.addImage(sprites[3]);
+          this.dustSprite.display();
+          this.dustSprite.position = this.sprite.position;
+        }*/
         
       } else if (keyIsDown(RIGHT_ARROW)||keyIsDown(68)) {
         if(this.inputs[1]>40){
@@ -642,6 +633,12 @@ class Player{
           this.inputs[1] += 1.5;
         }
         this.sprite.addImage(this.runImage);
+        /*if(this.inputs[1]<-30){
+          this.dustSprite.addImage(sprites[2]);
+          this.dustSprite.display();
+          this.dustSprite.position = this.sprite.position;
+        }*/
+        
       } else {
 
         this.sprite.addImage(this.image);
@@ -752,7 +749,6 @@ to play anim just iterate thru all frames one loop (for x < size())
 if player left while right velocity is high (& vice versa)
 track player x + width/2
 
-
 */
 
 function keyPressed(){
@@ -763,6 +759,7 @@ function keyPressed(){
     readyImgSizeIndex =40;
     beeState = 1;
     gameState.reload();
+    releaseButton.remove();
     
     //gameState.renderStart();
     
@@ -770,3 +767,10 @@ function keyPressed(){
 
 }
 
+/*
+
+how jump works:
+holding adds upwards velocity until 1 second, then cooldown until reset upon under (y var )
+
+
+*/
