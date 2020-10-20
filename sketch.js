@@ -580,6 +580,8 @@ class Player{
 
       if(!this.touchingGround()){
         this.inputs[0] += 1;
+      } else {
+        this.inputs[1] -= this.inputs[1] * this.dampening;
       }
       
 
@@ -604,7 +606,7 @@ display(){
 */
 
 
-    this.inputs[1] -= this.inputs[1] * this.dampening;
+    
       if (keyIsDown(UP_ARROW)||keyIsDown(87)) {//AND touching the floor
         //this.posy += 10;
         if(this.touchingGround()){
@@ -621,33 +623,44 @@ display(){
         
         //CROUCH() CALL
       }*/ else if (keyIsDown(LEFT_ARROW)||keyIsDown(65)) {
-        if(this.inputs[1]<-40){
-          this.inputs[1] -= 2.5;
-        } else {
-          this.inputs[1] -= 1.5;
+        if(this.touchingGround()){
+          if(this.inputs[1]<-40){
+            this.inputs[1] -= 2.5;
+          } else {
+            this.inputs[1] -= 1.5;
+          }
+          this.sprite.addImage(this.runImage);
         }
-        this.sprite.addImage(this.runImage);
       } else if (keyIsDown(RIGHT_ARROW)||keyIsDown(68)) {
-        if(this.inputs[1]>40){
-          this.inputs[1] += 2.5;
-        } else {
-          this.inputs[1] += 1.5;
+        if(this.touchingGround()){
+          if(this.inputs[1]>40){
+            this.inputs[1] += 2.5;
+          } else {
+            this.inputs[1] += 1.5;
+          }
+          this.sprite.addImage(this.runImage);
         }
-        this.sprite.addImage(this.runImage);
+        
       } else {
 
         this.sprite.addImage(this.image);
       }
       if(keyIsDown(DOWN_ARROW)||keyIsDown(83)){
-        console.log(this.inputs, this.sprite.position.y);//debug :O)
-        //his.posy -= 10;
         if(!this.touchingGround()){
           this.inputs[0] += 3;
-        }
-         
-
+        } /*else {
+          //put crouch image
+          //add dust
+          //slow down
+        }*/
       }
 
+      if(keyIsDown(16)&&this.touchingGround()){
+        this.inputs[1]*=1.03;
+      }
+      if(keyIsDown(79)){
+        console.log(this.inputs, this.sprite.position.y);//debug :O)
+      }
       
       if(this.posy > groundHeight){
         this.posy = groundHeight;
