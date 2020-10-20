@@ -58,6 +58,7 @@ function preload() {
   bgprops[1] = loadImage('img/bg1.png');
   bgprops[2] = loadImage('img/bg2.png');
   sprites[0] = loadImage('img/dog5.png');
+  sprites[1] = loadImage('img/dogrun.gif');
   physProps[0] = loadImage('img/rock3.png');
   physProps[1] = loadImage('img/flower-top.png');
   physProps[2] = loadImage('img/cyclops.png');
@@ -563,6 +564,7 @@ class Player{
     this.sprite = createSprite(200,200);
     this.image = loadImage('img/dog5.png');
     this.imageL = loadImage('img/rock2.png');
+    this.runImage = sprites[1];
     this.sprite.addImage(loadImage('img/dog5.png'));
   }
   posx = 0;
@@ -579,6 +581,27 @@ class Player{
     }
     ^^^ FOR ANIMATIONS!!!!!!
     */
+
+    //TODO: 
+    
+    //flip image depending on velocity
+    //dust
+    //ghost frames
+    //jump
+    //actual game logic :(
+
+    //83 = 100
+    //20 = 10
+
+    if(this.inputs[1] >= 0){
+      this.sprite.mirrorX(1);
+    } else {
+      this.sprite.mirrorX(-1);
+    }
+
+    //start 100 go down to 10
+    this.runImage.delay(Math.abs((1/(this.inputs[1]/80)*100)/2) + 1);
+    //console.log((this.inputs[1]/80)*100);
 
     if(!paused){
 
@@ -598,6 +621,7 @@ class Player{
       if (keyIsDown(UP_ARROW)||keyIsDown(87)) {//AND touching the floor
         this.inputs[0] += 0.1;
         //JUMP() CALL
+        this.sprite.addImage(this.image);
       }/* else if (keyIsDown(DOWN_ARROW)) {
 
         
@@ -608,8 +632,8 @@ class Player{
         } else {
           this.inputs[1] -= 1.5;
         }
-        
 
+        this.sprite.addImage(this.runImage);
         
       } else if (keyIsDown(RIGHT_ARROW)||keyIsDown(68)) {
         if(this.inputs[1]>40){
@@ -617,6 +641,10 @@ class Player{
         } else {
           this.inputs[1] += 1.5;
         }
+        this.sprite.addImage(this.runImage);
+      } else {
+
+        this.sprite.addImage(this.image);
       }
       if(keyIsDown(DOWN_ARROW)||keyIsDown(83)){
         console.log(this.inputs);//debug :O)
@@ -724,7 +752,6 @@ to play anim just iterate thru all frames one loop (for x < size())
 if player left while right velocity is high (& vice versa)
 track player x + width/2
 
-also disable anti-aliasing :O)
 
 */
 
