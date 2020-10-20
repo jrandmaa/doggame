@@ -486,13 +486,12 @@ class PhysObject{
     var playerRight = player.sprite.position.x + (player.image.width - 20);
     if((this.position.x > playerLeft)&&(this.position.x < playerRight)){
 
-      if(this.position.y > player.sprite.position.y){
+      if(this.position.y > player.sprite.position.y && this.position.y < player.sprite.position.y + player.sprite.height){
         //inside of player 😳😳
         //if(player.inputs[1] > )
         if(player.inputs[1]>20 || player.inputs[1]<-20){
-          this.velocity.add(createVector(player.inputs[1]*0.3,-5));
+          this.velocity.add(createVector(player.inputs[1]*0.3,-5));//player bashes thru it
         }
-        
         //if on left side push to very left, righ etc
         if(this.position.x < player.sprite.position.x){
           this.position.x = playerLeft;
@@ -512,13 +511,7 @@ class PhysObject{
       
     }
     //this.sprite.position = this.pos;
-
-    
-
     this.sprite.display();
-
-    //image(this.sprite,this.posx+this.velocity[0],this.posy+this.velocity[1]);
-    //this.velocity.forEach(o => o=0);
   }
 
   calculateMovement(){
@@ -533,15 +526,9 @@ class PhysObject{
     //hit floor : reduce speed by alot (cap at 0) and inverse?
 
   }
-  /*draw(){
-    drawSprites();
-  }*/
-
-
 }
 class Player{
   inputs = [0.0,0.0];//UD/LR
-  //speed, momentum & velocity << MOVE THESE TO PLAYER AND ADD TRACKER OF PLAYER LOCATION
   velocity = 0;
   constructor(state){
     this.gameState = state;
@@ -551,7 +538,6 @@ class Player{
     this.runImage = sprites[1];
     this.sprite.addImage(loadImage('img/dog5.png'));
     this.dustSprite = createSprite(200,200);
-    //this.dustSprite.addImage(sprites[2]);
   }
   posx = 0;
   posy = 0;
@@ -559,7 +545,12 @@ class Player{
   capSpeed = 500.0;
   dampening = 0.03;
 
+  touchingGround(){
+    return (this.posy >= 285 - (this.sprite.height/2));
+  }
+
   display(){
+    var groundHeight = 285 - (this.sprite.height/2);
     /*if(this.inputs[1]>1){
       this.sprite.changeImage(this.image);
     } else if (this.inputs[1]<-1) {
@@ -568,17 +559,11 @@ class Player{
     ^^^ FOR ANIMATIONS!!!!!!
     */
 
-    //TODO: 
-    
-    //flip image depending on velocity
+    //TODO:     
     //dust
     //ghost frames
     //jump
     //actual game logic :(
-
-    //83 = 100
-    //20 = 10
-
     if(this.inputs[1] >= 0){
       this.sprite.mirrorX(1);
     } else {
@@ -591,23 +576,43 @@ class Player{
     if(!paused){
       this.gameState.inputs = this.inputs;
       this.posx += this.inputs[1];
-      //this.posy = 50;
+      this.posy += this.inputs[0];
 
+      this.inputs[0] += 1;
 
       //ENABLE ME*******************************
       this.sprite.position.x = this.posx;
-      this.sprite.y = this.posy;
+      this.sprite.position.y = this.posy;
       //image(props[1],this.posx,this.posy);
       //ENABLE ME*******************************
 
       
-    this.inputs[1] -= this.inputs[1] * this.dampening;
+/*
+PSEUDOCODE FOR G:
 
+class asdf
+inputs = [0.0,0.0]
+
+
+display(){
+  
+}
+
+*/
+
+
+    this.inputs[1] -= this.inputs[1] * this.dampening;
       if (keyIsDown(UP_ARROW)||keyIsDown(87)) {//AND touching the floor
-        this.inputs[0] += 1;
-        this.posy += 10;
+        //this.posy += 10;
+        if(this.touchingGround()){
+          this.inputs[0] -= 25;
+        } else {
+          this.sprite.addImage(this.image);
+        }
+        
         //JUMP() CALL
-        this.sprite.addImage(this.image);
+        
+        //this.sprite.position.y += 10;
       }/* else if (keyIsDown(DOWN_ARROW)) {
 
         
@@ -618,14 +623,7 @@ class Player{
         } else {
           this.inputs[1] -= 1.5;
         }
-
         this.sprite.addImage(this.runImage);
-        /*if(this.inputs[1]>30){
-          this.dustSprite.addImage(sprites[3]);
-          this.dustSprite.display();
-          this.dustSprite.position = this.sprite.position;
-        }*/
-        
       } else if (keyIsDown(RIGHT_ARROW)||keyIsDown(68)) {
         if(this.inputs[1]>40){
           this.inputs[1] += 2.5;
@@ -633,19 +631,23 @@ class Player{
           this.inputs[1] += 1.5;
         }
         this.sprite.addImage(this.runImage);
-        /*if(this.inputs[1]<-30){
-          this.dustSprite.addImage(sprites[2]);
-          this.dustSprite.display();
-          this.dustSprite.position = this.sprite.position;
-        }*/
-        
       } else {
 
         this.sprite.addImage(this.image);
       }
       if(keyIsDown(DOWN_ARROW)||keyIsDown(83)){
-        console.log(this.inputs);//debug :O)
+        console.log(this.inputs, this.sprite.position.y);//debug :O)
+        //his.posy -= 10;
+        this.inputs[0] += 3; 
+
       }
+
+      
+      if(this.posy > groundHeight){
+        this.posy = groundHeight;
+        this.inputs[0] = 0;
+      }
+      //210-ish floor
 
     }
     
@@ -654,6 +656,7 @@ class Player{
     if(!paused){
       this.inputs[1] = clamp(-this.capSpeed,this.capSpeed)(this.inputs[1]);
     }
+
     
 // speed arraylist. each if statement adds 1 or -1 to the inputs, but each one caps at 15 or sumthin
 // when moving, consider speed then decay it a little (by dampening value)
@@ -753,18 +756,14 @@ track player x + width/2
 
 function keyPressed(){
   if(keyCode == 80){
-    
     paused = !paused;
   } else if(keyCode == 82){
     readyImgSizeIndex =40;
     beeState = 1;
     gameState.reload();
     releaseButton.remove();
-    
     //gameState.renderStart();
-    
   }
-
 }
 
 /*
