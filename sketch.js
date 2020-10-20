@@ -578,7 +578,10 @@ class Player{
       this.posx += this.inputs[1];
       this.posy += this.inputs[0];
 
-      this.inputs[0] += 1;
+      if(!this.touchingGround()){
+        this.inputs[0] += 1;
+      }
+      
 
       //ENABLE ME*******************************
       this.sprite.position.x = this.posx;
@@ -595,7 +598,7 @@ inputs = [0.0,0.0]
 
 
 display(){
-  
+
 }
 
 */
@@ -638,7 +641,10 @@ display(){
       if(keyIsDown(DOWN_ARROW)||keyIsDown(83)){
         console.log(this.inputs, this.sprite.position.y);//debug :O)
         //his.posy -= 10;
-        this.inputs[0] += 3; 
+        if(!this.touchingGround()){
+          this.inputs[0] += 3;
+        }
+         
 
       }
 
