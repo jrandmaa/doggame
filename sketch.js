@@ -232,6 +232,11 @@ class GameState{
 
     image(UISprites[3],camera.position.x + UISprites[3].width,camera.position.y - CANVAS_HEIGHT/2 +10);
     image(UISprites[2],camera.position.x -CANVAS_WIDTH/2 + 10,camera.position.y - CANVAS_HEIGHT/2 +10);
+    this.renderStart();
+    //--------
+  }
+
+  renderStart(){
     //vvv Hacky solution to animations
     if(beeState==1 && readyImgSizeIndex > 0){
       let newWidth = UISprites[4].width + readyImgSizeIndex + 40;
@@ -249,7 +254,6 @@ class GameState{
       
       beeState = 2;
     }
-    //--------
   }
 
   renderArrow(){
@@ -591,14 +595,14 @@ class Player{
       
     this.inputs[1] -= this.inputs[1] * this.dampening;
 
-      if (keyIsDown(UP_ARROW)) {//AND touching the floor
+      if (keyIsDown(UP_ARROW)||keyIsDown(87)) {//AND touching the floor
         this.inputs[0] += 0.1;
         //JUMP() CALL
       }/* else if (keyIsDown(DOWN_ARROW)) {
 
         
         //CROUCH() CALL
-      }*/ else if (keyIsDown(LEFT_ARROW)) {
+      }*/ else if (keyIsDown(LEFT_ARROW)||keyIsDown(65)) {
         if(this.inputs[1]<-40){
           this.inputs[1] -= 2.5;
         } else {
@@ -607,14 +611,14 @@ class Player{
         
 
         
-      } else if (keyIsDown(RIGHT_ARROW)) {
+      } else if (keyIsDown(RIGHT_ARROW)||keyIsDown(68)) {
         if(this.inputs[1]>40){
           this.inputs[1] += 2.5;
         } else {
           this.inputs[1] += 1.5;
         }
       }
-      if(keyIsDown(DOWN_ARROW)){
+      if(keyIsDown(DOWN_ARROW)||keyIsDown(83)){
         console.log(this.inputs);//debug :O)
       }
 
@@ -729,7 +733,12 @@ function keyPressed(){
     
     paused = !paused;
   } else if(keyCode == 82){
+    readyImgSizeIndex =40;
+    beeState = 1;
     gameState.reload();
+    
+    //gameState.renderStart();
+    
   }
 
 }
