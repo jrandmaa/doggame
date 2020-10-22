@@ -649,7 +649,9 @@ class Swarm{
     //console.log(gameCounter);
     if(this.posx < player.posx + 50 && this.posx > player.posx - 50){
       if(this.posy < player.posy + player.image.height/2 && this.posy > player.posy - player.image.height/2){
-        this.damage+=1;
+        if(!paused){
+          this.damage+=1;
+        }
       }
     }
 
