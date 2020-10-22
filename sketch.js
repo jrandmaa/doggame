@@ -593,7 +593,8 @@ class Player{
       }
     } else {
       this.sprite.addImage(this.deathImage);
-      
+
+      //-------Floating animation-------
       if(this.playerFloatIndex < 4){
         this.posy -= this.playerFloatIndex;
         this.playerFloatIndex += 0.1;
@@ -605,9 +606,8 @@ class Player{
           this.playerFloatIndex = -1;
         }
       }
+      //---------------------------------
 
-      
-      
     }
     this.sprite.position.x = this.posx;
     this.sprite.position.y = this.posy;
@@ -637,6 +637,7 @@ class Swarm{
 
     if(this.damage>40){
       alive=false;
+      pauseEnabled = false;
     }
 
     if(beeState==2 && !paused){
