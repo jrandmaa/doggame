@@ -18,6 +18,7 @@ let UISprites = [];
 //let beesReleased = false;
 let beeState = 0; //0:nothing,1:ready,2:theyre out. oh no
 let releaseButton;
+let controlsIntro;
 var readyImgSizeIndex =40;
 //et arrowSprite;
 
@@ -25,7 +26,9 @@ var readyImgSizeIndex =40;
 let currX = 0;
 var player;
 var gameState;
-var paused = false;
+var paused = true;
+var pauseEnabled = false;
+var preGame = true;
 
 
 
@@ -48,13 +51,15 @@ function preload() {
   props[0] = loadImage('img/cactus1.png');
   props[1] = loadImage('img/cactus2.png');
   props[2] = loadImage('img/cactus3.png');
+  //props[3] = loadImage('img/block.png');
   bgprops[0] = loadImage('img/ground.png');
   bgprops[1] = loadImage('img/bg1.png');
   bgprops[2] = loadImage('img/bg2.png');
   sprites[0] = loadImage('img/dog5.png');
   sprites[1] = loadImage('img/dogrun.gif');
-  sprites[2] = loadImage('img/dashdustL.gif');
-  sprites[3] = loadImage('img/dashdustR.gif');
+  /*sprites[2] = loadImage('img/dashdustL.gif');
+  sprites[3] = loadImage('img/dashdustR.gif');*/
+  sprites[3] = loadImage('img/dogCrouch.png');
   physProps[0] = loadImage('img/rock3.png');
   physProps[1] = loadImage('img/flower-top.png');
   physProps[2] = loadImage('img/cyclops.png');
@@ -68,6 +73,7 @@ function preload() {
   UISprites[4] = loadImage('img/UI/READY2.png');
   UISprites[5] = loadImage('img/UI/GO.png');
   UISprites[6] = loadImage('img/UI/!!.png');
+  UISprites[7] = loadImage('img/UI/controls.png');//loadImage('img/debug-box.png');
   this.gameState = new GameState();
   
   
@@ -83,42 +89,50 @@ function preload() {
 function release(){
 
   beeState = 1;
+  preGame = false;
+  paused = false;
   //beesReleased = true;
   releaseButton.remove();
 }
 
-function restart(){
-  //setup();
-
-}
+function restart(){}
 
 function setup() {
-  arrowSprite = createSprite(200,200);//image.width/2,image.height/2);
+  arrowSprite = createSprite(200,200);
 
   
-  releaseButton = createButton('click me to release the bees :)');
-  releaseButton.position(CANVAS_WIDTH/2 - 30, 25);
+  controlsIntro = createSprite(0,0,500,100);
+  controlsIntro.addImage(UISprites[7]);
+  releaseButton = createButton('ready?');
+  releaseButton.position(CANVAS_WIDTH/2 - 30, CANVAS_HEIGHT/2 + 60);
   releaseButton.mousePressed(release);
 
   //setCamera(this.camera);
   bg = loadImage('img/sunset.png');
   canvas = createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
   canvas.drawingContext.imageSmoothingEnabled = false;//this disables anti-aliasing
+
 }
 
 function draw() {
   background(bg);
-  this.gameState.display();
+  
+  if(!preGame){
+    this.gameState.display();
+    this.gameState.drawSpriteIndividual();
+  }
+  
   //******
   //ellipse(camera.position.x, camera.position.y, 10, 10);
   //******
   //if(!paused){
-
     camera.position.x = this.player.posx;
     camera.position.y = 50;//this.player.posy + 50;
   //}
-  this.gameState.drawSpriteIndividual();
   
+  if(preGame){
+    controlsIntro.display();
+  }
 }
 
 function drawTile(tilename, gridX, gridY){
@@ -127,39 +141,51 @@ function drawTile(tilename, gridX, gridY){
 }
 
 class GameState{
-  
-
   bg2speed = 0.75;
   bg3speed = 0.95;
 
   inputs = [0.0,0.0];
   constructor(){
+    
+    
+    this.bg1 = [
+      //new InfiniteRepeat(bgprops[0],-600,-150),//1332
+      new Ground(this,bgprops[0],-600,-150),
+      new Cactus(2,-480,150), //FIXME!!!!!!!
+      //new Obstacle(100,150,loadImage('img/rock2.png')),
+
+      //new Obstacle(1000,250,props[3]),
+      new Cactus(0,57000,150),
+      new Cactus(2,160000,150),
+      new Cactus(2,180000,150),
+      new Cactus(0,181000,150),
+      new Cactus(2,150000,150),
+      //new Cactus(0,30000,150),
+      //new Cactus(0,89600,150),
+      //new Obstacle(89700,150,loadImage('img/rock2.png')),
+      new Cactus(1,190000,150),
+      new Cactus(0,110000,150)//,
+      //new Obstacle(3000,212,UISprites[7])
+      
+    ];
+    
+    
+    this.arrowImage = loadImage('img/UI/arrowanim.gif');
     this.reload();
   }
   reload(){
-    this.inputs = [0.0,0.0];
-    //background(0)
-    this.inputs = [0.0,0.0];
-    self.player = new Player(this);
     this.bg3 = [
       new InfiniteRepeat(bgprops[2],-600,-150)
     ];
     this.bg2 = [
       new InfiniteRepeat(bgprops[1],-600,-150)
     ];
-    this.bg1 = [
-      //new InfiniteRepeat(bgprops[0],-600,-150),//1332
-      new Ground(this,bgprops[0],-600,-150),
-      new Cactus(2,-480,150),
-      new Cactus(1,300,25),
-      new Cactus(0,-900,-25),
-      new Cactus(1,-2000,25),
-      new Cactus(0,950,-25)
-      
-    ];
+    self.player = new Player(this);
+    this.inputs = [0.0,0.0];
     this.npcs = [
       new Swarm(-8000,200,12)
     ];
+    
     this.physicsObjs = [
       new PhysObject(this,physProps[2],20330,330,30),//gs,image,inx,iny,weight)
       new PhysObject(this,physProps[0],1500,330,3),
@@ -175,29 +201,16 @@ class GameState{
       new PhysObject(this,physProps[1],11400,330,3),
       new PhysObject(this,physProps[1],11600,330,3),
       new PhysObject(this,physProps[1],11900,330,3),
-      new PhysObject(this,physProps[1],12300,330,3)
+      new PhysObject(this,physProps[1],12300,330,3),
+      new PhysObject(this,physProps[0],30000,330,3),
+      new PhysObject(this,physProps[0],30500,330,3),
+      new PhysObject(this,physProps[0],31000,330,3),
+      new PhysObject(this,physProps[0],37000,330,3),
+      new PhysObject(this,physProps[0],37900,330,3),
+      new PhysObject(this,physProps[0],39000,330,3)
     ];
-   //arrowSprite = createSprite(200,200);
-    //arrowSprite.addImage(UISprites[0]);
-    //^^ add this to UISprites array
-
-    /*for(var i = 4000; i <= 5000; i+=100){
-      this.physicsObjs.add(new PhysObject(this,physProps[0],i,330,4));
-    }*/
-    this.arrowImage = loadImage('img/UI/arrowanim.gif');
-    console.log("Made Gamestate");
-    //!!!Hey bitch!!!
-    //populate lists of layer1 props, layer2 props layer3 props
-    //with instances ==> array [ new Cactus(idont,care), new Cactus....]
-    //only referred to by array memory location
-    /*
-    this.sprite = createSprite(200,200);
-    this.image = loadImage('img/dog5.png');
-    this.imageL = loadImage('img/rock2.png');
-    this.sprite.addImage(loadImage('img/dog5.png'));
-    */
-   
     
+    console.log("Made Gamestate");
   }
 
   getPlayerx(){
@@ -235,6 +248,7 @@ class GameState{
   }
 
   renderStart(){
+    
     //vvv Hacky solution to animations
     if(beeState==1 && readyImgSizeIndex > 0){
       let newWidth = UISprites[4].width + readyImgSizeIndex + 40;
@@ -249,16 +263,15 @@ class GameState{
       image(UISprites[5],camera.position.x-60,camera.position.y-100,UISprites[5].width + 40, UISprites[5].height + 40);
       readyImgSizeIndex -= 0.7;
     } else if (beeState==1 && readyImgSizeIndex <= (-30)){
+      pauseEnabled = true;
       
       beeState = 2;
     }
   }
-
   renderArrow(){
     //if gif dont work just loop images
     //ALSO>>> MAKE SURE NOT PAUSED
     if(beeState==2){
-      
       //console.log("dummy log");
       let maxShrinkDistance = 2000;
       let minSize = 50;
@@ -271,14 +284,7 @@ class GameState{
         image(UISprites[6],camera.position.x - CANVAS_WIDTH/2 + (1200/temp) +(600/temp),30,(1200/temp),(1200/temp)-10);
       }
       if(this.npcs[0].posx > player.posx + CANVAS_WIDTH/2){
-        /*let fixedDistance = clamp(0,maxShrinkDistance)(camera.position.x -  this.npcs[0].posx);
-        let temp = fixedDistance/minSize + 10;
-
-        */
-
         let fixedDistance = clamp(0,maxShrinkDistance)(this.npcs[0].posx - camera.position.x);
-        //rotate(200)
-        
         let temp = fixedDistance/minSize + 10;
         //image(UISprites[0],camera.position.x - CANVAS_WIDTH/2 + (600/temp),30,(1200/temp),(1200/temp)-10);
         //onsole.log(fixedDistance,1200/temp);
@@ -288,77 +294,43 @@ class GameState{
       
     }
   }
-
   drawSpriteIndividual(){
     this.bg1.forEach(o => o.draw());
-    //self.bg2.forEach(o => o.draw());
-
-
   }
-
-  
-  pause(){
-    
-  }
-  
-
+  pause(){}
 }
 class InfiniteRepeat{
-
   width = 1332;
-  
   constructor(sprite,inx,iny){
     this.sprite = createSprite();
     this.sprite.addImage(sprite);
     this.image = sprite;
     this.xpos = inx;
     this.ypos = iny;
-    
   }
   display(){
-
-    
    if(camera.position.x - this.xpos >1300){
       this.xpos += 1310;
     } else if(camera.position.x - this.xpos < 0){
       this.xpos -= 1310;
     }
-
-
     image(this.image, this.xpos, this.ypos);
     image(this.image, this.xpos+this.width, this.ypos);
     image(this.image, this.xpos-this.width, this.ypos);
-
-    //this.sprite.debug = true;
-    //this.sprite.display();
-    //this.sprite.draw();
-    //image(this.sprite, this.xpos-(2*this.width), this.ypos);
     //if camera position = position + half of image, display image in front
   }
-
-  
-
-  draw(){
-
-  }
+  draw(){}
 }
 class Ground{//JUST PASTED< EDIT ME
 
 width = 1332;
-  
   constructor(gs,sprite,inx,iny){
     this.gameState = gs;
     this.sprite = createSprite();
     this.sprite.addImage(sprite);
-    /*this.spriteL = createSprite();
-    this.spriteL.addImage(sprite);
-    this.spriteR = createSprite();
-    this.spriteR.addImage(sprite);*/
-
     this.image = sprite;
     this.xpos = inx;
     this.ypos = iny;
-    
   }
 
 //current: place new to left and right 
@@ -371,73 +343,76 @@ width = 1332;
     } else if(camera.position.x - this.xpos < 0){
       this.xpos -= 1310;
     }
-
-
     image(this.image, this.xpos, this.ypos);
-
-    //sprite not moving
-    
-
-    /*
-    this.sprite.position.x = mouseX;//this.xpos;// + this.image.width/2;
-    this.sprite.position.y = this.ypos;// + this.image.height/2;
-    */
-
-
     image(this.image, this.xpos+this.width, this.ypos);
     image(this.image, this.xpos-this.width, this.ypos);
-
-    //this.sprite.debug = true;
-    //this.sprite.debug = true;
     this.sprite.display();
-    //this.sprite.display();
-    //this.sprite.draw();
-    //image(this.sprite, this.xpos-(2*this.width), this.ypos);
     //if camera position = position + half of image, display image in front
   }
 
   draw(){
-    //this.gameState.physicsObjs.forEach(o => this.sprite.displace(o.sprite));
     this.sprite.position.x = this.xpos + this.image.width/2;//this.xpos;// + this.image.width/2;
     this.sprite.position.y = this.ypos + this.image.height/2;// + this.image.height/2;
-    //this.sprite.debug = mouseIsPressed;
   }
 }
-class Cactus{
-  
-  constructor(Cindex,inx,iny){
-    this.xpos = inx;
-    this.ypos = iny;
-    
-    this.index = Cindex;
 
+class Obstacle{
+  constructor(posx,posy,img){
+    this.img = img;
+    this.posx = posx;
+    this.posy = posy- this.img.height/2;
     
+    this.sprite = createSprite();
+    this.sprite.addImage(img);
+    this.sprite.position.x = posx;
+    this.sprite.position.y = posy;
+    //console.log(this.posx,this.posy,this.posy - this.img.height/2,this.img.height);
   }
   display(){
-    image(props[this.index], this.xpos, this.ypos); 
-    /*if(keyIsDown(LEFT_ARROW)){
-      this.y += 5;
-    }*/
+    //ellipse(this.posx, this.posy - this.img.height/2, 10, 10);
+    this.sprite.display();
+    var pxb = player.posy + player.image.height/2;
+    var pxr = player.posx + player.image.width/2;
+    var pxl = player.posx - player.image.width/2;
+    var leftBound = this.posx - this.img.width/2;
+    var rightBound = this.posx + this.img.width/2; 
+    var top = this.posy - this.img.height/2;
+    if((pxr>= leftBound && pxl <= rightBound) && (pxb > (top - 5) && pxb < (top+5))){//posx between and posy = top (or between acceptable ones)
+      player.inputs[0] = -10;
+      //console.log("A");
+    }
+    else if((pxr >= leftBound&& pxr <= rightBound) && pxb >= (this.posy - this.img.height/2)){
+      if(pxb > this.posy - this.img.height/2){
+        player.inputs[1] = 0;
+        player.posx = leftBound - 1 - player.image.width/2;
+      }
+    } else if (pxl >= leftBound&& pxl <= rightBound){
+      if(pxb >= this.posy - this.img.height/2){
+        player.inputs[1] = 0;
+        player.posx = rightBound + 1 + player.image.width/2;
+      }
+//ALSO AFFECT PARALLAX INPUTS TOO
+    } 
   }
-
-  draw(){
-
-  }
-
-  
+  draw(){}
 }
 
-/*
-
-
-ENEMY OBJECT
-
-//this.sprite.attractionPoint(1, this.gameState.getPlayerx(),500);
-
-
-*/
-
-
+class Cactus extends Obstacle { 
+  constructor(Cindex,inx,iny){
+    switch(Cindex) {
+      case 0:
+        super(inx,200,props[Cindex]);
+        break;
+      case 1:
+        super(inx,190,props[Cindex]);
+        break;
+      case 2:
+          super(inx,220,props[Cindex]);
+        break;
+    }
+    
+  }
+}
 
 class PhysObject{
   velocity = createVector(0.0,0.0);
@@ -457,19 +432,8 @@ class PhysObject{
     //this.sprite.mass = weight;
     //this.sprite.position.x = -300;
   }
-
-
-
+//this.sprite.debug=true;
   display(){
-    //this.velocity[1]+=1;
-    //this.sprite.attractionPoint(1,this.sprite.position.x,900);
-    //gravity:
-    //this.sprite.bounce(this.gameState.bg1[0].sprite);
-    //this.sprite.collide(this.gameState.bg1[0].sprite,this.touchFloor);
-    
-    //this.sprite.bounce(player.sprite);//this.gameState.bg1[0].sprite);
-    //this.sprite.debug = true;
-
     if(!paused){
     let gravity = createVector(0, 0.4 * this.mass);
     this.acceleration.add(p5.Vector.div(gravity, this.mass));
@@ -505,26 +469,16 @@ class PhysObject{
     this.velocity.add(this.acceleration);
     this.acceleration.mult(0);
     this.position.add(this.velocity);
-
     this.sprite.position = this.position;
     this.velocity.x *= (1-this.drag);
       
     }
-    //this.sprite.position = this.pos;
     this.sprite.display();
   }
-
-  calculateMovement(){
-
-  }
-
-  touchFloor(){
-    //this.velocity[1]-=1;
-  }
-
+  calculateMovement(){}
+  touchFloor(){}
   draw(){
     //hit floor : reduce speed by alot (cap at 0) and inverse?
-
   }
 }
 class Player{
@@ -534,8 +488,9 @@ class Player{
     this.gameState = state;
     this.sprite = createSprite(200,200);
     this.image = loadImage('img/dog5.png');
-    this.imageL = loadImage('img/rock2.png');
+    //this.imageL = loadImage('img/rock2.png');
     this.runImage = sprites[1];
+    this.crouchImage = sprites[3];
     this.sprite.addImage(loadImage('img/dog5.png'));
     this.dustSprite = createSprite(200,200);
   }
@@ -551,18 +506,9 @@ class Player{
 
   display(){
     var groundHeight = 285 - (this.sprite.height/2);
-    /*if(this.inputs[1]>1){
-      this.sprite.changeImage(this.image);
-    } else if (this.inputs[1]<-1) {
-      this.sprite.changeImage(this.imageL);
-    }
-    ^^^ FOR ANIMATIONS!!!!!!
-    */
-
     //TODO:     
     //dust
     //ghost frames
-    //jump
     //actual game logic :(
     if(this.inputs[1] >= 0){
       this.sprite.mirrorX(1);
@@ -585,48 +531,43 @@ class Player{
       }
       
 
+      //console.log(this.inputs[1]);
       //ENABLE ME*******************************
       this.sprite.position.x = this.posx;
       this.sprite.position.y = this.posy;
       //image(props[1],this.posx,this.posy);
       //ENABLE ME*******************************
 
-      
-/*
-PSEUDOCODE FOR G:
-
-class asdf{
-  inputs = [0.0,0.0]
-
-
-  display(){
-
-  }
-}
-
-*/
-
-
-    
       if (keyIsDown(UP_ARROW)||keyIsDown(87)) {//AND touching the floor
         //this.posy += 10;
         if(this.touchingGround()){
-          this.inputs[0] -= 25;
+          this.inputs[0] -= 25 + (this.inputs[1]/200);
         } else {
+          if(this.inputs[1] < 10 && this.inputs[1] > -10){
+            if (keyIsDown(RIGHT_ARROW)||keyIsDown(68)){
+              this.inputs[1]+=2;
+            } else if (keyIsDown(LEFT_ARROW)||keyIsDown(65)) {
+              this.inputs[1]-=2;
+            }
+          }
+          
           this.sprite.addImage(this.image);
         }
-        
         //JUMP() CALL
-        
         //this.sprite.position.y += 10;
-      }/* else if (keyIsDown(DOWN_ARROW)) {
-
-        
-        //CROUCH() CALL
-      }*/ else if (keyIsDown(LEFT_ARROW)||keyIsDown(65)) {
+      } else if(keyIsDown(DOWN_ARROW)||keyIsDown(83)){
+        if(!this.touchingGround()){
+          this.inputs[0] += 3;
+        } /*else {
+          //put crouch image
+          //add dust
+          //slow down
+        }*/
+        this.sprite.addImage(this.crouchImage);
+      } else if (keyIsDown(LEFT_ARROW)||keyIsDown(65)) {
         if(this.touchingGround()){
           if(this.inputs[1]<-40){
-            this.inputs[1] -= 2.5;
+            this.inputs[1] -= 3;
           } else {
             this.inputs[1] -= 1.5;
           }
@@ -635,7 +576,7 @@ class asdf{
       } else if (keyIsDown(RIGHT_ARROW)||keyIsDown(68)) {
         if(this.touchingGround()){
           if(this.inputs[1]>40){
-            this.inputs[1] += 2.5;
+            this.inputs[1] += 3;
           } else {
             this.inputs[1] += 1.5;
           }
@@ -646,15 +587,7 @@ class asdf{
 
         this.sprite.addImage(this.image);
       }
-      if(keyIsDown(DOWN_ARROW)||keyIsDown(83)){
-        if(!this.touchingGround()){
-          this.inputs[0] += 3;
-        } /*else {
-          //put crouch image
-          //add dust
-          //slow down
-        }*/
-      }
+      
 
       if(keyIsDown(16)&&this.touchingGround()){
         this.inputs[1]*=1.03;
@@ -670,20 +603,14 @@ class asdf{
       //210-ish floor
 
     }
-    
-
     this.sprite.display();
     if(!paused){
       this.inputs[1] = clamp(-this.capSpeed,this.capSpeed)(this.inputs[1]);
     }
-
-    
 // speed arraylist. each if statement adds 1 or -1 to the inputs, but each one caps at 15 or sumthin
 // when moving, consider speed then decay it a little (by dampening value)
 }
-draw(){
-  //this.gameState.physicsObjs.forEach(o => this.sprite.displace(o.sprite));
-}
+draw(){}
 }
 
 class Swarm{
@@ -697,7 +624,6 @@ class Swarm{
       this.swarmArray[i] = new Bee(this);
     }
   }
-
   display(){
     if(beeState==2 && !paused){
     this.swarmArray.forEach(o => o.display());
@@ -718,12 +644,7 @@ class Swarm{
   }
     //ellipse(this.posx, this.posy, 10, 10);
   }
-  draw(){
-
-  }
-
-
-
+  draw(){}
 }
 
 class Bee{
@@ -776,12 +697,17 @@ track player x + width/2
 
 function keyPressed(){
   if(keyCode == 80){
-    paused = !paused;
+    if(pauseEnabled){
+      paused = !paused;
+    }
+    
   } else if(keyCode == 82){
     readyImgSizeIndex =40;
     beeState = 1;
     gameState.reload();
     releaseButton.remove();
+    controlsIntro.remove();
+    paused = false;
     //gameState.renderStart();
   }
 }
