@@ -31,7 +31,7 @@ var pauseEnabled = false;
 var preGame = true;
 var alive = true;
 
-
+var gameCounter = 0;
 
 
 //Math stuff
@@ -117,6 +117,7 @@ function setup() {
 }
 
 function draw() {
+
   background(bg);
   
   if(!preGame){
@@ -126,7 +127,10 @@ function draw() {
 
     camera.position.x = this.player.posx;
     camera.position.y = 50;//this.player.posy + 50;
-  
+    if(!paused){
+      gameCounter += 0.1;
+    }
+    
   if(preGame){
     controlsIntro.display();
   }
@@ -168,6 +172,7 @@ class GameState{
     this.reload();
   }
   reload(){
+    gameCounter = 0;
     alive = true;
     this.bg3 = [
       new InfiniteRepeat(bgprops[2],-600,-150)
@@ -618,6 +623,8 @@ draw(){}
 }
 
 class Swarm{
+  distantSpeed = 80;
+  closeSpeed = 10;
   constructor(posx,posy,count){
     this.posx = posx;
     this.posy = posy;
@@ -629,6 +636,17 @@ class Swarm{
     this.damage = 0;
   }
   display(){
+    if(gameCounter < 100){
+      this.distantSpeed = 50;
+      this.closeSpeed = 10;
+    } else if (gameCounter < 200){
+      this.distantSpeed = 80;
+      this.closeSpeed = 10;
+    } else{
+      this.distantSpeed = 90;
+      this.closeSpeed = 20;
+    }
+    //console.log(gameCounter);
     if(this.posx < player.posx + 50 && this.posx > player.posx - 50){
       if(this.posy < player.posy + player.image.height/2 && this.posy > player.posy - player.image.height/2){
         this.damage+=1;
@@ -644,15 +662,15 @@ class Swarm{
     this.swarmArray.forEach(o => o.display());
 
     if(this.posx > player.posx + 50 && this.posx - player.posx < 200){
-      this.posx -= 50;
+      this.posx -= this.closeSpeed;
     } else if (this.posx - player.posx > 100){
-      this.posx -= 80;
+      this.posx -= this.distantSpeed;
     }
     else if(player.posx - this.posx > 200){
-      this.posx += 80;//bee noise sound depend on proximity
+      this.posx += this.distantSpeed;//bee noise sound depend on proximity
     } else {
 
-      this.posx += 50;
+      this.posx += this.closeSpeed;
     }
   } else {
     this.swarmArray.forEach(o => o.display());
