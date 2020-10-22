@@ -479,6 +479,8 @@ class PhysObject{
 class Player{
   inputs = [0.0,0.0];//UD/LR
   velocity = 0;
+  playerFloatIndex = 0;
+  playerFloatInverse = 4;
   constructor(state){
     this.gameState = state;
     this.sprite = createSprite(200,200);
@@ -591,7 +593,21 @@ class Player{
       }
     } else {
       this.sprite.addImage(this.deathImage);
-      this.posy -= 5;
+      
+      if(this.playerFloatIndex < 4){
+        this.posy -= this.playerFloatIndex;
+        this.playerFloatIndex += 0.1;
+      } else {
+        this.posy -= this.playerFloatInverse;
+        this.playerFloatInverse -= 0.2;
+        if(this.playerFloatInverse < -1){
+          this.playerFloatInverse = 4;
+          this.playerFloatIndex = -1;
+        }
+      }
+
+      
+      
     }
     this.sprite.position.x = this.posx;
     this.sprite.position.y = this.posy;
@@ -602,7 +618,6 @@ draw(){}
 }
 
 class Swarm{
-
   constructor(posx,posy,count){
     this.posx = posx;
     this.posy = posy;
