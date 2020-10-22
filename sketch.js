@@ -29,6 +29,7 @@ var gameState;
 var paused = true;
 var pauseEnabled = false;
 var preGame = true;
+var alive = true;
 
 
 
@@ -60,6 +61,7 @@ function preload() {
   /*sprites[2] = loadImage('img/dashdustL.gif');
   sprites[3] = loadImage('img/dashdustR.gif');*/
   sprites[3] = loadImage('img/dogCrouch.png');
+  sprites[4] = loadImage('img/dogAngel.png');
   physProps[0] = loadImage('img/rock3.png');
   physProps[1] = loadImage('img/flower-top.png');
   physProps[2] = loadImage('img/cyclops.png');
@@ -121,23 +123,13 @@ function draw() {
     this.gameState.display();
     this.gameState.drawSpriteIndividual();
   }
-  
-  //******
-  //ellipse(camera.position.x, camera.position.y, 10, 10);
-  //******
-  //if(!paused){
+
     camera.position.x = this.player.posx;
     camera.position.y = 50;//this.player.posy + 50;
-  //}
   
   if(preGame){
     controlsIntro.display();
   }
-}
-
-function drawTile(tilename, gridX, gridY){
-    tile_sprite_sheet.drawFrame(tilename, TILE_SIZE * gridX, TILE_SIZE * gridY);
-    rows[gridY][gridX] = tilename;
 }
 
 class GameState{
@@ -156,6 +148,8 @@ class GameState{
 
       //new Obstacle(1000,250,props[3]),
       new Cactus(0,57000,150),
+      new Cactus(2,98000,150),
+      new Cactus(2,73000,150),
       new Cactus(2,160000,150),
       new Cactus(2,180000,150),
       new Cactus(0,181000,150),
@@ -174,6 +168,7 @@ class GameState{
     this.reload();
   }
   reload(){
+    alive = true;
     this.bg3 = [
       new InfiniteRepeat(bgprops[2],-600,-150)
     ];
@@ -220,7 +215,7 @@ class GameState{
   display(){//basically update
 
     
-    if(!paused){
+    if(!paused && alive){//<<HERE is where parallax speed determined
       this.bg3.forEach(o => o.xpos += (this.inputs[1] * this.bg3speed));
       this.bg2.forEach(o => o.xpos += (this.inputs[1] * this.bg2speed));
     }
@@ -388,8 +383,8 @@ class Obstacle{
       }
     } else if (pxl >= leftBound&& pxl <= rightBound){
       if(pxb >= this.posy - this.img.height/2){
-        player.inputs[1] = 0;
-        player.posx = rightBound + 1 + player.image.width/2;
+        player.inputs[1] = -0.5;
+        player.posx = rightBound + 3 + player.image.width/2;
       }
 //ALSO AFFECT PARALLAX INPUTS TOO
     } 
@@ -493,6 +488,7 @@ class Player{
     this.crouchImage = sprites[3];
     this.sprite.addImage(loadImage('img/dog5.png'));
     this.dustSprite = createSprite(200,200);
+    this.deathImage = sprites[4];
   }
   posx = 0;
   posy = 0;
@@ -505,110 +501,102 @@ class Player{
   }
 
   display(){
-    var groundHeight = 285 - (this.sprite.height/2);
-    //TODO:     
-    //dust
-    //ghost frames
-    //actual game logic :(
-    if(this.inputs[1] >= 0){
-      this.sprite.mirrorX(1);
-    } else {
-      this.sprite.mirrorX(-1);
-    }
-
-    //start 100 go down to 10
-    this.runImage.delay(Math.abs((1/(this.inputs[1]/80)*100)/2) + 1);
-
-    if(!paused){
-      this.gameState.inputs = this.inputs;
-      this.posx += this.inputs[1];
-      this.posy += this.inputs[0];
-
-      if(!this.touchingGround()){
-        this.inputs[0] += 1;
+    if(alive){
+      var groundHeight = 285 - (this.sprite.height/2);
+      //TODO:     
+      //dust
+      //ghost frames
+      //actual game logic :(
+      if(this.inputs[1] >= 0){
+        this.sprite.mirrorX(1);
       } else {
-        this.inputs[1] -= this.inputs[1] * this.dampening;
+        this.sprite.mirrorX(-1);
       }
-      
 
-      //console.log(this.inputs[1]);
-      //ENABLE ME*******************************
-      this.sprite.position.x = this.posx;
-      this.sprite.position.y = this.posy;
-      //image(props[1],this.posx,this.posy);
-      //ENABLE ME*******************************
+      //start 100 go down to 10
+      this.runImage.delay(Math.abs((1/(this.inputs[1]/80)*100)/2) + 1);
 
-      if (keyIsDown(UP_ARROW)||keyIsDown(87)) {//AND touching the floor
-        //this.posy += 10;
-        if(this.touchingGround()){
-          this.inputs[0] -= 25 + (this.inputs[1]/200);
+      if(!paused){
+        this.gameState.inputs = this.inputs;
+        this.posx += this.inputs[1];
+        this.posy += this.inputs[0];
+
+        if(!this.touchingGround()){
+          this.inputs[0] += 1;
         } else {
-          if(this.inputs[1] < 10 && this.inputs[1] > -10){
-            if (keyIsDown(RIGHT_ARROW)||keyIsDown(68)){
-              this.inputs[1]+=2;
-            } else if (keyIsDown(LEFT_ARROW)||keyIsDown(65)) {
-              this.inputs[1]-=2;
+          this.inputs[1] -= this.inputs[1] * this.dampening;
+        }
+
+        if (keyIsDown(UP_ARROW)||keyIsDown(87)) {//AND touching the floor
+          //this.posy += 10;
+          if(this.touchingGround()){
+            this.inputs[0] -= 25 + (this.inputs[1]/200);
+          } else {
+            if(this.inputs[1] < 10 && this.inputs[1] > -10){
+              if (keyIsDown(RIGHT_ARROW)||keyIsDown(68)){
+                this.inputs[1]+=2;
+              } else if (keyIsDown(LEFT_ARROW)||keyIsDown(65)) {
+                this.inputs[1]-=2;
+              }
             }
+            this.sprite.addImage(this.image);
+          }
+          //JUMP() CALL
+          //this.sprite.position.y += 10;
+        } else if(keyIsDown(DOWN_ARROW)||keyIsDown(83)){
+          if(!this.touchingGround()){
+            this.inputs[0] += 3;
+          } /*else {
+            //put crouch image
+            //add dust
+            //slow down
+          }*/
+          this.sprite.addImage(this.crouchImage);
+        } else if (keyIsDown(LEFT_ARROW)||keyIsDown(65)) {
+          if(this.touchingGround()){
+            if(this.inputs[1]<-40){
+              this.inputs[1] -= 3;
+            } else {
+              this.inputs[1] -= 1.5;
+            }
+            this.sprite.addImage(this.runImage);
+          }
+        } else if (keyIsDown(RIGHT_ARROW)||keyIsDown(68)) {
+          if(this.touchingGround()){
+            if(this.inputs[1]>40){
+              this.inputs[1] += 3;
+            } else {
+              this.inputs[1] += 1.5;
+            }
+            this.sprite.addImage(this.runImage);
           }
           
+        } else {
+
           this.sprite.addImage(this.image);
         }
-        //JUMP() CALL
-        //this.sprite.position.y += 10;
-      } else if(keyIsDown(DOWN_ARROW)||keyIsDown(83)){
-        if(!this.touchingGround()){
-          this.inputs[0] += 3;
-        } /*else {
-          //put crouch image
-          //add dust
-          //slow down
-        }*/
-        this.sprite.addImage(this.crouchImage);
-      } else if (keyIsDown(LEFT_ARROW)||keyIsDown(65)) {
-        if(this.touchingGround()){
-          if(this.inputs[1]<-40){
-            this.inputs[1] -= 3;
-          } else {
-            this.inputs[1] -= 1.5;
-          }
-          this.sprite.addImage(this.runImage);
+        if(keyIsDown(16)&&this.touchingGround()){
+          this.inputs[1]*=1.03;
         }
-      } else if (keyIsDown(RIGHT_ARROW)||keyIsDown(68)) {
-        if(this.touchingGround()){
-          if(this.inputs[1]>40){
-            this.inputs[1] += 3;
-          } else {
-            this.inputs[1] += 1.5;
-          }
-          this.sprite.addImage(this.runImage);
+        if(keyIsDown(79)){
+          console.log(this.inputs, this.sprite.position.y);//debug :O)
         }
-        
-      } else {
-
-        this.sprite.addImage(this.image);
+        if(this.posy > groundHeight){
+          this.posy = groundHeight;
+          this.inputs[0] = 0;
+        }
       }
-      
-
-      if(keyIsDown(16)&&this.touchingGround()){
-        this.inputs[1]*=1.03;
+      if(!paused){
+        this.inputs[1] = clamp(-this.capSpeed,this.capSpeed)(this.inputs[1]);
       }
-      if(keyIsDown(79)){
-        console.log(this.inputs, this.sprite.position.y);//debug :O)
-      }
-      
-      if(this.posy > groundHeight){
-        this.posy = groundHeight;
-        this.inputs[0] = 0;
-      }
-      //210-ish floor
-
+    } else {
+      this.sprite.addImage(this.deathImage);
+      this.posy -= 5;
     }
+    this.sprite.position.x = this.posx;
+    this.sprite.position.y = this.posy;
     this.sprite.display();
-    if(!paused){
-      this.inputs[1] = clamp(-this.capSpeed,this.capSpeed)(this.inputs[1]);
-    }
-// speed arraylist. each if statement adds 1 or -1 to the inputs, but each one caps at 15 or sumthin
-// when moving, consider speed then decay it a little (by dampening value)
+    
 }
 draw(){}
 }
@@ -623,8 +611,19 @@ class Swarm{
     for(var i = 0; i < count; i++){
       this.swarmArray[i] = new Bee(this);
     }
+    this.damage = 0;
   }
   display(){
+    if(this.posx < player.posx + 50 && this.posx > player.posx - 50){
+      if(this.posy < player.posy + player.image.height/2 && this.posy > player.posy - player.image.height/2){
+        this.damage+=1;
+      }
+    }
+
+    if(this.damage>40){
+      alive=false;
+    }
+
     if(beeState==2 && !paused){
     this.swarmArray.forEach(o => o.display());
 
@@ -663,20 +662,22 @@ class Bee{
     */
    if(!paused){
      var attractionStremgth = (Math.random()*8) + 10
-    this.sprite.attractionPoint(attractionStremgth,this.swarm.posx,this.swarm.posy);
+    if(alive){
+      this.sprite.attractionPoint(attractionStremgth,this.swarm.posx,this.swarm.posy);
     
 
-    if(this.sprite.position.x > this.swarm.posx + 100){
-      this.sprite.position.x = this.swarm.posx;
+      if(this.sprite.position.x > this.swarm.posx + 100){
+        this.sprite.position.x = this.swarm.posx;
+      }
+      if(this.sprite.position.y > this.swarm.posy + 100){
+        this.sprite.position.y = this.swarm.posy;
+      }
+      if(this.sprite.position.y < this.swarm.posy -100){
+        this.sprite.position.y = this.swarm.posy;
+      }
+      this.posx = this.sprite.position.x;
+      this.posy = this.sprite.position.y;
     }
-    if(this.sprite.position.y > this.swarm.posy + 100){
-      this.sprite.position.y = this.swarm.posy;
-    }
-    if(this.sprite.position.y < this.swarm.posy -100){
-      this.sprite.position.y = this.swarm.posy;
-    }
-    this.posx = this.sprite.position.x;
-    this.posy = this.sprite.position.y;
    }  else {
      this.sprite.position.x = this.posx;
      this.sprite.position.y = this.posy
@@ -696,26 +697,26 @@ track player x + width/2
 */
 
 function keyPressed(){
-  if(keyCode == 80){
-    if(pauseEnabled){
-      paused = !paused;
-    }
-    
-  } else if(keyCode == 82){
-    readyImgSizeIndex =40;
-    beeState = 1;
-    gameState.reload();
-    releaseButton.remove();
-    controlsIntro.remove();
-    paused = false;
-    //gameState.renderStart();
+  if(!preGame){
+    if(keyCode == 80){
+        if(pauseEnabled && alive){
+          paused = !paused;
+        }
+        
+      } else if(keyCode == 82){
+        readyImgSizeIndex =40;
+        beeState = 1;
+        gameState.reload();
+        releaseButton.remove();
+        controlsIntro.remove();
+        paused = false;
+        //gameState.renderStart();
+      }
   }
+  
 }
 
 /*
-
-how jump works:
+how jump could work:
 holding adds upwards velocity until 1 second, then cooldown until reset upon under (y var )
-
-
 */
